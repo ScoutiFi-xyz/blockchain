@@ -12,7 +12,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     baseSepolia: {
-      url: 'https://base-sepolia.drpc.org',
+      url: process.env.RPC_URL,
       accounts: [process.env.PRIVATE_KEY || ''],
       chainId: 84532
     }
