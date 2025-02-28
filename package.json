@@ -1,0 +1,43 @@
+{
+  "name": "pool-v4",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "clean": "hardhat clean",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "exec": "hardhat run",
+    "verify": "hardhat verify",
+    "start:local": "hardhat node --verbose",
+    "setup:local": "npm run exec -- --network localhost ./deploy/local/01-setup.ts",
+    "setup:base-sepolia": "npm run exec -- --network baseSepolia ./deploy/base-sepolia/01-player-api-adapter.ts",
+    "deploy:local": "npm run exec -- --network localhost ./deploy/local/05-scoutifi-contracts.ts",
+    "test-swap": "npm run exec -- --network localhost ./deploy/local/02-pool.ts && npm run exec -- --network localhost ./deploy/local/03-swap.ts",
+    "test-hooks": "npm run exec -- --network localhost ./deploy/local/04-hooks.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.18",
+    "hardhat-dependency-compiler": "^1.2.1"
+  },
+  "dependencies": {
+    "@chainlink/contracts": "^1.3.0",
+    "@uniswap/sdk-core": "^7.6.0",
+    "@uniswap/universal-router": "^2.0.0",
+    "@uniswap/v4-core": "^1.0.1",
+    "@uniswap/v4-periphery": "^1.0.1",
+    "@uniswap/v4-sdk": "^1.20.0",
+    "decimal.js": "^10.5.0",
+    "dotenv": "^16.4.7",
+    "ethers-v5": "npm:ethers@5.7.0",
+    "solmate": "^6.8.0"
+  },
+  "overrides": {
+    "@uniswap/v4-sdk": {
+      "ethers": "5.7.2"
+    }
+  }
+}
