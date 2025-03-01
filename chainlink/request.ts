@@ -51,6 +51,7 @@ const run = async () => {
   const gasLimit = 300_000
 
   // simulate tx
+  // Note: runs script locally in Deno, as if it is being executed in DON
   console.log('Start simulation...')
 
   const response = await simulateScript({
@@ -100,6 +101,7 @@ const run = async () => {
   )
 
   // request through call to adapter contract
+  // Note: DON will execute fn script 3 times in order to come up with response consensus
   const playerApiAdapter = new ethers.Contract(
     consumerAddress,
     playerApiAdapterConfig.abi,
