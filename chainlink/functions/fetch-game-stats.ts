@@ -4,7 +4,7 @@ const leagueId = 39;
 const seasonId = 2023;
 
 const xRapidApiHost = 'v3.football.api-sports.io'
-const xRapidApiKey = args[0];
+const xRapidApiKey = args[0]; // TODO: this should not be sent onchain, use chainlink secrets endpoint
 
 // const fixtureId = 1035038;
 const fixtureId = args[1];
