@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Functions for ScoufiFi data sync actions
+
+Parameters:
+  Env:
+    Type: String
+    Default: Staging
+
+Resources:
+  ScoutifiRatingSyncerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: built/scoutifi-rating-syncer/src/index.handler
+      CodeUri: scoutifi-rating-syncer
+      Runtime: nodejs22.x
+      FunctionName: 'scoutifi-rating-syncer'
+      Environment:
+        Variables:
+          Env: !Ref Env
+      Description: Collects player ratings from Chainlink oracle through adapter contracts
+      Timeout: 300
+      Events:
+        StartScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 8-10 * * ? *)
+            Enabled: true
+      MemorySize: 256
+      Policies:
+        - AWSLambdaBasicExecutionRole
+    Metadata:
+      BuildProperties:
+        UseNpmCi: True

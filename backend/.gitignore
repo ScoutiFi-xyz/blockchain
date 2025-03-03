@@ -1,0 +1,10 @@
+**/node_modules
+**/built
+**/coverage
+.vscode
+.aws-sam
+.idea
+test-report.xml
+.npmrc
+aws-access-key.txt
+**/contracts

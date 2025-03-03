@@ -1,3 +1,5 @@
+// Refer to: https://github.com/smartcontractkit/smart-contract-examples/blob/main/functions-examples/examples/2-call-api/request.js
+
 import * as dotenv from 'dotenv';
 dotenv.config({ path: `${__dirname}/../.env` });
 
