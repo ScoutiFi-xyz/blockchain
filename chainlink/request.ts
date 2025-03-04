@@ -28,7 +28,8 @@ const consumerAddress = process.env.CHAINLINK_SUBSCRIPTION_CONSUMER_ADDRESS || '
 const subscriptionId = process.env.CHAINLINK_SUBSCRIPTION_ID || ''
 
 const run = async () => {
-  const fixtureId = 1035038
+  const fixtureId = 1035544 // Arsenal - Everton
+  const playerId = 49 // Thomas Partey
 
   // load env
   const privateKey = process.env.PRIVATE_KEY
@@ -49,8 +50,15 @@ const run = async () => {
   // load chainlink fn source
   const source = (await fs.readFile(path.resolve(__dirname, 'functions', 'fetch-game-stats.ts'))).toString('utf-8')
 
-  const args = [process.env.DATA_API_KEY || '', fixtureId.toString()]
+  const args = [
+    process.env.DATA_API_KEY || '',
+    fixtureId.toString(),
+    playerId.toString()
+  ]
   const gasLimit = 300_000
+
+  const decoder = ethers.utils.defaultAbiCoder
+  const resTypes = ['bytes32', 'uint16', 'uint64']
 
   // simulate tx
   // Note: runs script locally in Deno, as if it is being executed in DON
@@ -71,11 +79,12 @@ const run = async () => {
     const returnType = ReturnType.string
     const responseBytesHexstring = response.responseBytesHexstring || ''
     if (ethers.utils.arrayify(responseBytesHexstring).length > 0) {
-      const decodedResponse = decodeResult(
+      const decodedHex = decodeResult(
         responseBytesHexstring,
         returnType
       )
-      console.log(`✅ Decoded response to ${returnType}: `, decodedResponse)
+      const [name, rating, timestamp] = decoder.decode(resTypes, decodedHex.toString())
+      console.log(`✅ Decoded response - name: ${ethers.utils.parseBytes32String(name)}; rating: ${rating}; ratedAt: ${new Date(Number(timestamp)).toISOString()}`)
     }
   }
 
@@ -184,14 +193,12 @@ const run = async () => {
         const responseBytesHexstring = response.responseBytesHexstring
         const returnType = ReturnType.string
         if (ethers.utils.arrayify(responseBytesHexstring).length > 0) {
-          const decodedResponse = decodeResult(
+          const decodedHex = decodeResult(
             response.responseBytesHexstring,
             returnType
           )
-          console.log(
-            `\n✅ Decoded response to ${returnType}: `,
-            decodedResponse
-          );
+          const [name, rating, timestamp] = decoder.decode(resTypes, decodedHex.toString())
+          console.log(`✅ Decoded response - name: ${ethers.utils.parseBytes32String(name)}; rating: ${rating}; ratedAt: ${new Date(Number(timestamp)).toISOString()}`)
         }
       }
     } catch (error) {
