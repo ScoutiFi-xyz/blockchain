@@ -1,5 +1,7 @@
 // Refer to https://github.com/smartcontractkit/functions-hardhat-starter-kit#javascript-code
 
+const { createHash } = await import('node:crypto')
+
 const leagueId = 39;
 const seasonId = 2023;
 
@@ -41,7 +43,26 @@ if (
 }
 const response = data.response;
 
-const teamNames = response.map((entry: any) => entry.team.name).join(', ');
-console.log(`Teams in fixture ${teamNames}`);
+const now = Date.now()
+const ratings = response.flatMap(
+  (side: any) => side.players.map((playerEntry: any) => {
+    const id = createHash('sha256')
+      .update(playerEntry.player.name)
+      .digest('hex')
 
-return Functions.encodeString(teamNames);
+    // TODO: 256 bytes max response
+    return playerEntry.statistics[0].games.rating
+
+    // return {
+      // id,
+      // externalId: playerEntry.player.id,
+      // name: playerEntry.player.name,
+      // rating: playerEntry.statistics[0].games.rating,
+      // ratedAt: new Date(side.update).valueOf(),
+      // updatedAt: now
+    // }
+  })
+);
+console.log(`Ratings in fixture ${JSON.stringify(ratings)}`);
+
+return Functions.encodeString(JSON.stringify(ratings));
