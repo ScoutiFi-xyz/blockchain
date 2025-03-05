@@ -2,6 +2,7 @@ node_modules
 
 node_modules
 .env
+offchain-secrets.json
 
 # Hardhat files
 /cache

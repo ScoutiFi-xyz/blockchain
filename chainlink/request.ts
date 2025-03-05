@@ -13,6 +13,7 @@ import {
   ReturnType,
   decodeResult,
   FulfillmentCode,
+  SecretsManager
 } from '@chainlink/functions-toolkit'
 import playerApiAdapterConfig from '../artifacts/contracts/PlayerApiAdapter.sol/PlayerApiAdapter.json'
 
@@ -30,6 +31,7 @@ const subscriptionId = process.env.CHAINLINK_SUBSCRIPTION_ID || ''
 const run = async () => {
   const fixtureId = 1035544 // Arsenal - Everton
   const playerId = 49 // Thomas Partey
+  const secretsUrls = [ process.env.CHAINLINK_SECRETS_URL || '' ]
 
   // load env
   const privateKey = process.env.PRIVATE_KEY
@@ -51,7 +53,6 @@ const run = async () => {
   const source = (await fs.readFile(path.resolve(__dirname, 'functions', 'fetch-game-stats.ts'))).toString('utf-8')
 
   const args = [
-    process.env.DATA_API_KEY || '',
     fixtureId.toString(),
     playerId.toString()
   ]
@@ -64,11 +65,12 @@ const run = async () => {
   // Note: runs script locally in Deno, as if it is being executed in DON
   console.log('Start simulation...')
 
+  const secrets = { dataApiKey: process.env.DATA_API_KEY || '' }
   const response = await simulateScript({
     source: source,
     args: args,
     bytesArgs: [], // bytesArgs - arguments can be encoded off-chain to bytes.
-    secrets: {}, // no secrets in this example
+    secrets: secrets, // inject secrets for a proper simulation
   })
 
   console.log('Simulation result', response)
@@ -111,6 +113,18 @@ const run = async () => {
     )} LINK`
   )
 
+  // encrypt secrets file url
+  const secretsManager = new SecretsManager({
+    signer: signer,
+    functionsRouterAddress: routerAddress,
+    donId: donId,
+  })
+  await secretsManager.initialize()
+  const encryptedSecretsUrls = await secretsManager.encryptSecretsUrls(
+    secretsUrls
+  )
+  console.log(`\nEncrypted secrets URLs with DON public key`)
+
   // request through call to adapter contract
   // Note: DON will execute fn script 3 times in order to come up with response consensus
   const playerApiAdapter = new ethers.Contract(
@@ -121,7 +135,7 @@ const run = async () => {
 
   const transaction = await playerApiAdapter.sendRequest(
     source, // code to be executed in DON Deno
-    '0x', // user hosted secrets - encryptedSecretsUrls - empty in this example
+    encryptedSecretsUrls, // user hosted secrets urls
     0, // don hosted secrets - slot ID - empty in this example
     0, // don hosted secrets - version - empty in this example
     args,

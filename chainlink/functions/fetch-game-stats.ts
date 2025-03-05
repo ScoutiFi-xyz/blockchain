@@ -1,19 +1,20 @@
 // Refer to https://github.com/smartcontractkit/functions-hardhat-starter-kit#javascript-code
 
-const { createHash } = await import('node:crypto')
 const { ethers } = await import('npm:ethers@6.10.0')
 
-const leagueId = 39;
-const seasonId = 2023;
-
 const xRapidApiHost = 'v3.football.api-sports.io'
-const xRapidApiKey = args[0]; // TODO: this should not be sent onchain, use chainlink secrets endpoint
+
+if (!secrets.dataApiKey) {
+  throw Error(
+    "DATA_API_KEY environment variable not found in secrets"
+  )
+}
 
 // const fixtureId = 1035038;
-const fixtureId = parseInt(args[1], 10);
-const playerId = parseInt(args[2], 10);
+const fixtureId = parseInt(args[0], 10);
+const playerId = parseInt(args[1], 10);
 
-const url = `https://v3.football.api-sports.io/fixtures/players`;
+const url = `https://${xRapidApiHost}/fixtures/players`;
 console.log(`HTTP GET Request to ${url}?fixture=${fixtureId}`);
 
 const cryptoCompareRequest = Functions.makeHttpRequest({
@@ -21,7 +22,7 @@ const cryptoCompareRequest = Functions.makeHttpRequest({
   headers: {
     'Content-Type': 'application/json',
     'x-rapidapi-host': xRapidApiHost,
-    'x-rapidapi-key': xRapidApiKey
+    'x-rapidapi-key': secrets.dataApiKey
   },
   params: {
     fixture: fixtureId,
@@ -58,13 +59,20 @@ const ratings = response.flatMap(
 ));
 console.log(`Ratings in fixture ${JSON.stringify(ratings)}`);
 
+const abiCoder = ethers.AbiCoder.defaultAbiCoder()
+
 const player = ratings.find((player: any) => player.externalId === playerId)
 if (!player) {
-  console.error(`Player ${playerId} not found in fixture`);
-  throw Error(`Player ${playerId} not found in fixture`);
+  console.log(`Player ${playerId} did not play in this fixture`);
+
+  const encoded = abiCoder.encode(
+    ['bytes32', 'uint16', 'uint64'],
+    [ethers.encodeBytes32String(''), 0, 0]
+  )
+
+  return Functions.encodeString(encoded);
 }
 
-const abiCoder = ethers.AbiCoder.defaultAbiCoder()
 const encoded = abiCoder.encode(
   ['bytes32', 'uint16', 'uint64'],
   [ethers.encodeBytes32String(player.name), player.rating, player.ratedAt]
