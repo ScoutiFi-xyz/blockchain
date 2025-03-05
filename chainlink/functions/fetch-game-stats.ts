@@ -2,13 +2,21 @@
 
 const { ethers } = await import('npm:ethers@6.10.0')
 
+let { dataApiKey } = secrets
+
 const xRapidApiHost = 'v3.football.api-sports.io'
 
-if (!secrets.dataApiKey) {
-  throw Error(
-    "DATA_API_KEY environment variable not found in secrets"
-  )
-}
+// TODO: currently getting "Invalid secrets ownership" with s3
+// resourse is public though
+// probably because of the BETA status of the feature
+// https://stackoverflow.com/questions/76083939/unable-to-create-chainlink-function-subscription-using-github-repo-chainlink-fu/76089600
+// if (!dataApiKey) {
+//   throw Error(
+//     "DATA_API_KEY environment variable not found in secrets"
+//   )
+// }
+// as a workaraound, include as param
+dataApiKey = args[2]
 
 // const fixtureId = 1035038;
 const fixtureId = parseInt(args[0], 10);
@@ -22,7 +30,7 @@ const cryptoCompareRequest = Functions.makeHttpRequest({
   headers: {
     'Content-Type': 'application/json',
     'x-rapidapi-host': xRapidApiHost,
-    'x-rapidapi-key': secrets.dataApiKey
+    'x-rapidapi-key': dataApiKey
   },
   params: {
     fixture: fixtureId,

@@ -54,7 +54,8 @@ const run = async () => {
 
   const args = [
     fixtureId.toString(),
-    playerId.toString()
+    playerId.toString(),
+    process.env.DATA_API_KEY || '' // TODO: workaround for secrets access issue
   ]
   const gasLimit = 300_000
 
@@ -120,7 +121,7 @@ const run = async () => {
     donId: donId,
   })
   await secretsManager.initialize()
-  const encryptedSecretsUrls = await secretsManager.encryptSecretsUrls(
+  let encryptedSecretsUrls = await secretsManager.encryptSecretsUrls(
     secretsUrls
   )
   console.log(`\nEncrypted secrets URLs with DON public key`)
@@ -132,6 +133,10 @@ const run = async () => {
     playerApiAdapterConfig.abi,
     signer
   )
+
+  // TODO: workaround for "Invalid secrets ownership" error
+  // use no secrets in this example
+  encryptedSecretsUrls = '0x'
 
   const transaction = await playerApiAdapter.sendRequest(
     source, // code to be executed in DON Deno
