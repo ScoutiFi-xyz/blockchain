@@ -4,9 +4,15 @@ pragma solidity >=0.8.0;
 import { FunctionsClient } from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
 import { ConfirmedOwner } from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 import { FunctionsRequest } from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
+import "./RewardsDistribution.sol";
 
-// based on https://docs.chain.link/chainlink-functions/tutorials/api-query-parameters#set-up-your-environment
-
+/**
+ * Based on: https://docs.chain.link/chainlink-functions/tutorials/api-query-parameters#set-up-your-environment
+ *
+ * THIS IS AN EXAMPLE CONTRACT THAT USES HARDCODED VALUES FOR CLARITY.
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+ * DO NOT USE THIS CODE IN PRODUCTION.
+ */
 contract PlayerApiAdapter is FunctionsClient, ConfirmedOwner {
     using FunctionsRequest for FunctionsRequest.Request;
 
@@ -14,13 +20,18 @@ contract PlayerApiAdapter is FunctionsClient, ConfirmedOwner {
     bytes public s_lastResponse;
     bytes public s_lastError;
 
+    RewardsDistribution public rewardsDistribution;
+
     error UnexpectedRequestID(bytes32 requestId);
 
     event Response(bytes32 indexed requestId, bytes response, bytes err);
 
     constructor(
-        address router
-    ) FunctionsClient(router) ConfirmedOwner(msg.sender) {}
+        address routerAddress,
+        address rewardsDistributionAddress
+    ) FunctionsClient(routerAddress) ConfirmedOwner(msg.sender) {
+        rewardsDistribution = RewardsDistribution(rewardsDistributionAddress);
+    }
 
     /**
      * @notice Send a simple request
@@ -104,6 +115,10 @@ contract PlayerApiAdapter is FunctionsClient, ConfirmedOwner {
         }
         s_lastResponse = response;
         s_lastError = err;
+
+        (bytes32 playerHash, uint16 rating, uint64 ratedAt) = abi.decode(s_lastResponse, (bytes32, uint16, uint64));
+        rewardsDistribution.setPlayerRating(playerHash, rating, ratedAt);
+
         emit Response(requestId, s_lastResponse, s_lastError);
     }
 }
