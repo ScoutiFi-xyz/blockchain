@@ -3,7 +3,6 @@ pragma solidity >=0.8.0;
 
 // TODO: use Auth.sol as this will be used by platform operators
 import "solmate/src/auth/Owned.sol";
-import "solmate/src/tokens/ERC20.sol";
 import { Bytes32AddressLib } from "solmate/src/utils/Bytes32AddressLib.sol";
 import "./PlayerToken.sol";
 

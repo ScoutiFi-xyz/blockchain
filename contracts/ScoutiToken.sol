@@ -10,11 +10,11 @@ contract ScoutiToken is ERC20, Owned {
         Owned(msg.sender)
     {}
 
-    function mint(address to, uint256 value) public virtual onlyOwner() {
+    function mint(address to, uint256 value) public onlyOwner() {
         _mint(to, value);
     }
 
-    function burn(address from, uint256 value) public virtual onlyOwner() {
+    function burn(address from, uint256 value) public onlyOwner() {
         _burn(from, value);
     }
 }

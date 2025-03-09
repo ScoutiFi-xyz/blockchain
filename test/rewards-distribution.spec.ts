@@ -58,4 +58,8 @@ describe.only('RewardsDistribution', () => {
     expect(ratedAt).to.eq(BigInt(1741383730714))
     expect(updatedAt).to.exist
   })
+
+  it('rewards investors in players', async () => {
+    // TODO
+  })
 })
