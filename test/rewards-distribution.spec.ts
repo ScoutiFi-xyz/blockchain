@@ -67,7 +67,7 @@ describe('RewardsDistribution', () => {
     expect(updatedAt).to.exist
   })
 
-  it.only('invest - reward flow', async () => {
+  it('invest - reward flow', async () => {
     // set token holdings
     const [owner, feeWallet, holder1, holder2] = await ethers.getSigners()
     await platformToken.mint(feeWallet, 10_000)
