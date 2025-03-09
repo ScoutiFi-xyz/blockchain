@@ -18,13 +18,13 @@ contract RewardsDistribution is Owned {
 
   uint16 MAX_RATING = 1000;
 
-  // claimable token
+  // claimable reward token
   ERC20 public rewardToken;
 
-  // contract that will update player data by calling setPlayerRating
+  // contract that will update player data (setPlayerRating caller)
   PlayerApiAdapter public feedAdapter;
 
-  // amount of unclaimed reward tokens per player holder
+  // amount of unclaimed reward tokens by player holder
   mapping(address => uint256) private unclaimed;
 
   // current rating of a given player by hash
@@ -150,7 +150,7 @@ contract RewardsDistribution is Owned {
     require(amount > 0, "INVALID_AMOUNT");
 
     // pull funds into this contract
-    rewardToken.transfer(address(this), amount);
+    rewardToken.transferFrom(msg.sender, address(this), amount);
     uint256 leftover = amount;
 
     uint256 playersCount = tokens.length();
@@ -212,7 +212,7 @@ contract RewardsDistribution is Owned {
     }
 
     // refund leftover amount
-    rewardToken.transferFrom(address(this), msg.sender, leftover);
+    rewardToken.transfer(msg.sender, leftover);
   }
 
   /**
@@ -236,7 +236,7 @@ contract RewardsDistribution is Owned {
    * Transfer all assigned rewards to function caller.
    */
   function claim() external {
-    rewardToken.transferFrom(address(this), msg.sender, unclaimed[msg.sender]);
+    rewardToken.transfer(msg.sender, unclaimed[msg.sender]);
     delete unclaimed[msg.sender];
   }
 
@@ -244,7 +244,7 @@ contract RewardsDistribution is Owned {
    * Backdoor in case of emergencies, should never be used.
    */
   function claimOnBehalfOf(address claimer) external onlyOwner() {
-    rewardToken.transferFrom(address(this), msg.sender, unclaimed[claimer]);
+    rewardToken.transfer(msg.sender, unclaimed[claimer]);
     delete unclaimed[claimer];
   }
 }

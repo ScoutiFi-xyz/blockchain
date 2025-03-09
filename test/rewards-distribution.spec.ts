@@ -1,9 +1,17 @@
 import { ethers } from 'hardhat'
 import { expect } from 'chai'
-import { MockERC20, RewardsDistribution, PlayerApiAdapter, MockFeedAdapter } from '../typechain-types'
+import {
+  ScoutiToken,
+  RewardsDistribution,
+  PlayerApiAdapter,
+  MockFeedAdapter,
+  PlayerTokenFactory,
+  PlayerToken
+} from '../typechain-types'
+import playerTokenConfig from '../artifacts/contracts/PlayerToken.sol/PlayerToken.json'
 
-describe.only('RewardsDistribution', () => {
-  let testToken: MockERC20
+describe('RewardsDistribution', () => {
+  let platformToken: ScoutiToken
   let rewardsDistribution: RewardsDistribution
   let feedAdapter: PlayerApiAdapter
   let mockFeedAdapter: MockFeedAdapter
@@ -12,12 +20,12 @@ describe.only('RewardsDistribution', () => {
   beforeEach(async () => {
     owner = (await ethers.getSigners())[0]
 
-    const testTokenFactory = await ethers.getContractFactory('MockERC20')
-    testToken = await testTokenFactory.deploy('Test USD', 'USDC', 6)
+    const platforTokenFactory = await ethers.getContractFactory('ScoutiToken')
+    platformToken = await platforTokenFactory.deploy()
 
     const rewardsDistributionFactory = await ethers.getContractFactory('RewardsDistribution')
     rewardsDistribution = await rewardsDistributionFactory.deploy(
-      await testToken.getAddress()
+      await platformToken.getAddress()
     )
     expect(await rewardsDistribution.getAddress()).to.exist
 
@@ -29,7 +37,7 @@ describe.only('RewardsDistribution', () => {
   })
 
   it('deploys contract', async () => {
-    expect(await rewardsDistribution.rewardToken()).to.eq(await testToken.getAddress())
+    expect(await rewardsDistribution.rewardToken()).to.eq(await platformToken.getAddress())
   })
 
   it('sets adapter contract', async () => {
@@ -59,7 +67,95 @@ describe.only('RewardsDistribution', () => {
     expect(updatedAt).to.exist
   })
 
-  it('rewards investors in players', async () => {
-    // TODO
+  it.only('invest - reward flow', async () => {
+    // set token holdings
+    const [owner, feeWallet, holder1, holder2] = await ethers.getSigners()
+    await platformToken.mint(feeWallet, 10_000)
+
+    const playerTokenFactory: PlayerTokenFactory = await (
+      await ethers.getContractFactory('PlayerTokenFactory')
+    ).deploy()
+    await playerTokenFactory.createToken('GK', 10_000)
+    await playerTokenFactory.createToken('EB', 10_000)
+    const gkToken = new ethers.Contract(
+      await playerTokenFactory.getTokenAddress('GK'),
+      playerTokenConfig.abi,
+      owner
+    ) as unknown as PlayerToken
+    const ebToken: PlayerToken = new ethers.Contract(
+      await playerTokenFactory.getTokenAddress('EB'),
+      playerTokenConfig.abi,
+      owner
+    ) as unknown as PlayerToken
+
+    await gkToken.transfer(holder1, 10_000)
+    await ebToken.transfer(holder1, 2_500)
+    await ebToken.transfer(holder2, 7_500)
+
+    // link into distribution contract
+    const kolevHash = await rewardsDistribution.computePlayerHash('Georgi Kolev')
+    const balaHash = await rewardsDistribution.computePlayerHash('Everton Bala')
+    await rewardsDistribution.linkPlayerToken(kolevHash, await gkToken.getAddress())
+    await rewardsDistribution.linkPlayerToken(balaHash, await ebToken.getAddress())
+
+    // set player ratings
+    await rewardsDistribution.setFeedAdapter(await mockFeedAdapter.getAddress())
+    await mockFeedAdapter.fulfillRequest(kolevHash, 470, BigInt(Date.now() - 24 * 60 * 60 * 1000))
+
+    await rewardsDistribution.setFeedAdapter(await mockFeedAdapter.getAddress())
+    await mockFeedAdapter.fulfillRequest(balaHash, 780, BigInt(Date.now() - 12 * 60 * 60 * 1000))
+
+    // assert no claimable
+    expect(
+      await rewardsDistribution.claimable(holder1)
+    ).to.eq(0)
+    expect(
+      await rewardsDistribution.claimable(holder2)
+    ).to.eq(0)
+
+    // allow rewards contract to spend feeWallet platform tokens
+    await platformToken.connect(feeWallet).approve(await rewardsDistribution.getAddress(), 1000)
+
+    // run
+    await rewardsDistribution.connect(feeWallet).reward(1000)
+
+    // assert claimable
+    expect(
+      await rewardsDistribution.claimable(holder1)
+    ).to.eq(
+      332 // (500 * 0.47) + (500 * 0.25 * 0.78)
+    )
+    expect(
+      await rewardsDistribution.claimable(holder2)
+    ).to.eq(
+      292 // 500 * 0.75 * 0.78
+    )
+    expect(
+      await platformToken.balanceOf(await rewardsDistribution.getAddress())
+    ).to.eq(
+      624 // claimable rewards are collateralized
+    )
+    expect(
+      await platformToken.balanceOf(feeWallet)
+    ).to.eq(
+      9376 // not spend + remainder from reward operation returned back
+    )
+
+    // claim
+    await rewardsDistribution.connect(holder1).claim()
+
+    // assert claimed
+    expect(
+      await platformToken.balanceOf(holder1)
+    ).to.eq(
+      332
+    )
+
+    // assert claimed no longer claimable
+    expect(
+      await rewardsDistribution.claimable(holder1)
+    ).to.eq(
+      0
+    )
   })
 })
