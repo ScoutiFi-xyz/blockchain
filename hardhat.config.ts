@@ -13,7 +13,10 @@ const config: HardhatUserConfig = {
   networks: {
     baseSepolia: {
       url: process.env.RPC_URL,
-      accounts: [process.env.PRIVATE_KEY || ''],
+      accounts: [
+        process.env.SCOUTIFI_OWNER_PRIVATE_KEY || '',
+        process.env.SCOUTIFI_FEE_WALLET_PRIVATE_KEY || ''
+      ],
       chainId: 84532
     }
   },
