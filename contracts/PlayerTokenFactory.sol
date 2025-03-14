@@ -8,6 +8,7 @@ import "./PlayerToken.sol";
 contract PlayerTokenFactory is Owned {
     using Bytes32AddressLib for bytes32;
 
+    // TODO: this is always empty at the moment
     address[] public playerTokenAddresses;
 
     event TokenCreated(address indexed playerTokenAddress, uint count);
@@ -31,6 +32,7 @@ contract PlayerTokenFactory is Owned {
 
         PlayerToken(token).mint(msg.sender, icoValue);
 
+        // TODO: could be useful to have the symbol in event as well
         emit TokenCreated(token, this.playerTokenContractsCount());
     }
 
