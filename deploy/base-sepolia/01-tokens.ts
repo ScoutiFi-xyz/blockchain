@@ -18,7 +18,6 @@ const deployPlatformToken = async (owner: HardhatEthersSigner) => {
   console.log(`PLATFORM_TOKEN_ADDRESS: '${address}'`)
 }
 
-
 const deployPlayerTokenFactory = async (owner: HardhatEthersSigner) => {
   const playerTokenFactory = await (
     await ethers.getContractFactory('PlayerTokenFactory', owner)
