@@ -14,8 +14,7 @@
     "deploy:base-sepolia:1": "npm run exec -- --network baseSepolia ./deploy/base-sepolia/01-tokens.ts",
     "deploy:base-sepolia:2": "npm run exec -- --network baseSepolia ./deploy/base-sepolia/02-rewards-distribution.ts",
     "deploy:base-sepolia:3": "npm run exec -- --network baseSepolia ./deploy/base-sepolia/03-player-api-adapter.ts",
-    "test-swap": "npm run exec -- --network localhost ./deploy/local/02-pool.ts && npm run exec -- --network localhost ./deploy/local/03-swap.ts",
-    "test-hooks": "npm run exec -- --network localhost ./deploy/local/04-hooks.ts"
+    "test-swap": "npm run exec -- --network localhost ./deploy/local/02-pool.ts && npm run exec -- --network localhost ./deploy/local/03-swap.ts"
   },
   "author": "",
   "license": "ISC",
