@@ -46,12 +46,6 @@ contract SwapFeeHook is BaseHook {
             });
     }
 
-    function validateHookAddress(BaseHook _this) internal pure override {
-        // disables permissions deploy validation
-        // TODO: pretty sure permissions should be correct as I followed this https://docs.uniswap.org/contracts/v4/guides/custom-accounting
-        // but somehow I keep facing deploy rejections because of this validation
-    }
-
     function _beforeSwap(
         address,
         PoolKey calldata key,
