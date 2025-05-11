@@ -1,5 +1,5 @@
 {
-  "name": "pool-v4",
+  "name": "scoutifi-blockchain",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -8,6 +8,7 @@
     "test": "hardhat test",
     "exec": "hardhat run",
     "verify": "hardhat verify",
+    "verify:base-sepolia": "npm run verify -- --network baseSepolia",
     "start:local": "hardhat node --verbose",
     "setup:local": "npm run exec -- --network localhost ./deploy/local/01-setup.ts",
     "deploy:local": "npm run exec -- --network localhost ./deploy/local/05-scoutifi-contracts.ts",
@@ -21,6 +22,7 @@
   "description": "",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.13",
     "hardhat": "^2.22.18",
     "hardhat-dependency-compiler": "^1.2.1"
   },
