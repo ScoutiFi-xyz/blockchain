@@ -8,26 +8,37 @@ const run = async () => {
   await deployEmission(owner)
 }
 
-const SFASB_ADDRESS = '0x619755E5D7933adf671BC75BA2407bA6930766C4'
+const PLAYER_TOKEN_ID = '6821c134164e26370ca5df7c'
+const PLAYER_TOKEN_ADDRESS = '0x712C2d3dde8DE454a7aA014D21073Cb4777c519F'
 const STABLECOIN_ADDRESS = '0x6C8374476006Bc20588Ebc6bEaBf1b7B05aD5925'
 
 const deployEmission = async (deployer: HardhatEthersSigner) => {
   const rate = 500 // 0.5 eur per player token
+  const emission = 100
 
   const TokenEmissionFactory = await ethers.getContractFactory('TokenEmission', deployer)
   const tokenEmission = await TokenEmissionFactory.deploy(
-    SFASB_ADDRESS,
+    PLAYER_TOKEN_ADDRESS,
     STABLECOIN_ADDRESS,
     rate
   )
   await tokenEmission.waitForDeployment()
 
+  const emissions = []
   const emissionAddress = await tokenEmission.getAddress()
-  console.log(`TOKEN_EMISSION_ADDRESS_SFASB: '${emissionAddress}'`)
 
-  const sfasbToken = await ethers.getContractAt('ERC20', SFASB_ADDRESS)
+  const playerToken = await ethers.getContractAt('ERC20', PLAYER_TOKEN_ADDRESS)
 
-  await sfasbToken.transfer(emissionAddress, ethers.parseUnits('100', 6))
+  await playerToken.transfer(emissionAddress, ethers.parseUnits(emission.toString(), 6))
+
+  emissions.push({
+    token: { $oid: PLAYER_TOKEN_ID },
+    emissionAddress,
+    rate,
+    emission,
+    active: true
+  })
+  console.log(JSON.stringify(emissions, null, 2))
 }
 
 run()
