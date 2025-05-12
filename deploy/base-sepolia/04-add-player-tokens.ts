@@ -5,6 +5,63 @@ import playerTokenFactoryConfig from '../../artifacts/contracts/PlayerTokenFacto
 import rewardsDistributionConfig from '../../artifacts/contracts/RewardsDistribution.sol/RewardsDistribution.json'
 import { BASE_SEPOLIA } from '../config'
 
+const players = [{
+  id: '681e2698164e26370ca5df0a',
+  tokenSymbol: 'SF-NCO',
+  externalName: 'Nnamdi Chinonso Offor',
+  icoValue: '1000'
+}, {
+  id: '681e2698164e26370ca5df06',
+  tokenSymbol: 'SF-MAP',
+  externalName: 'Marin Petkov',
+  icoValue: '1000'
+}, {
+  id: '681e2698164e26370ca5df0c',
+  tokenSymbol: 'SF-MAV',
+  externalName: 'Martin Velichkov',
+  icoValue: '1000'
+}, {
+  id: '681e2698164e26370ca5df0f',
+  tokenSymbol: 'SF-MZS',
+  externalName: 'Mazire Soula',
+  icoValue: '1000'
+}, {
+  id: '681e2698164e26370ca5df09',
+  tokenSymbol: 'SF-JME',
+  externalName: 'James Eto\'o',
+  icoValue: '1000'
+}, {
+  id: '681e2698164e26370ca5df0d',
+  tokenSymbol: 'SF-IVP',
+  externalName: 'Ivelin Popov',
+  icoValue: '1000'
+}, {
+  id: '681e2698164e26370ca5df10',
+  tokenSymbol: 'SF-SON',
+  externalName: 'Son',
+  icoValue: '1000'
+}, {
+  id: '681e2698164e26370ca5df08',
+  tokenSymbol: 'SF-STS',
+  externalName: 'Stanislav Shopov',
+  icoValue: '1000'
+}, {
+  id: '681e2698164e26370ca5df0b',
+  tokenSymbol: 'SF-LRG',
+  externalName: 'Leandro Godoy',
+  icoValue: '1000'
+}, {
+  id: '681e2698164e26370ca5df0e',
+  tokenSymbol: 'SF-VIP',
+  externalName: 'Viktor Popov',
+  icoValue: '1000'
+}, {
+  id: '681e2698164e26370ca5df07',
+  tokenSymbol: 'SF-WTS',
+  externalName: 'Wenderson Tsunami',
+  icoValue: '1000'
+}]
+
 const run = async () => {
   const [owner, feeWallet] = await ethers.getSigners()
 
@@ -20,25 +77,14 @@ const createTokens = async (owner: HardhatEthersSigner) => {
   )
 
   // deploy player contracts
-  await (
-    await playerTokenFactory.createToken('SFTHP', ethers.parseUnits('1000', 6))
-  ).wait()
-
-  await (
-    await playerTokenFactory.createToken('SFGBJ', ethers.parseUnits('1000', 6))
-  ).wait()
-
-  await (
-    await playerTokenFactory.createToken('SFKDB', ethers.parseUnits('1000', 6))
-  ).wait()
-
-  await (
-    await playerTokenFactory.createToken('SFASB', ethers.parseUnits('1000', 6))
-  ).wait()
-
-  await (
-    await playerTokenFactory.createToken('SFVVD', ethers.parseUnits('1000', 6))
-  ).wait()
+  for (const player of players) {
+    await (
+      await playerTokenFactory.createToken(
+        player.tokenSymbol,
+        ethers.parseUnits(player.icoValue, 6)
+      )
+    ).wait()
+  }
 
   console.log('Players deployed')
 }
@@ -55,36 +101,27 @@ const linkTokens = async (feeWallet: HardhatEthersSigner) => {
     feeWallet
   )
 
-  // get addresses
-  const thomasParteyAddress = await playerTokenFactory.getTokenAddress('SFTHP')
-  const gabrielJesusAddress = await playerTokenFactory.getTokenAddress('SFGBJ')
-  const kevinDebruyneAddress = await playerTokenFactory.getTokenAddress('SFKDB')
-  const alissonBackerAddress = await playerTokenFactory.getTokenAddress('SFASB')
-  const virgilVanDykAddress = await playerTokenFactory.getTokenAddress('SFVVD')
+  const playerTokens = []
 
   // link to distribution contract
-  await rewardsDistribution.linkPlayerToken(
-    await rewardsDistribution.computePlayerHash('T. Partey'),
-    thomasParteyAddress
-  )
-  await rewardsDistribution.linkPlayerToken(
-    await rewardsDistribution.computePlayerHash('Gabriel Jesus'),
-    gabrielJesusAddress
-  )
-  await rewardsDistribution.linkPlayerToken(
-    await rewardsDistribution.computePlayerHash('K. De Bruyne'),
-    kevinDebruyneAddress
-  )
-  await rewardsDistribution.linkPlayerToken(
-    await rewardsDistribution.computePlayerHash('Alisson Becker'),
-    alissonBackerAddress
-  )
-  await rewardsDistribution.linkPlayerToken(
-    await rewardsDistribution.computePlayerHash('V. van Dijk'),
-    virgilVanDykAddress
-  )
+  for (const player of players) {
+    const playerHash = await rewardsDistribution.computePlayerHash(player.externalName)
+    const address = await playerTokenFactory.getTokenAddress(player.tokenSymbol)
+
+    await rewardsDistribution.linkPlayerToken(playerHash, address)
+
+    playerTokens.push({
+      player: { $oid: player.id },
+      symbol: player.tokenSymbol,
+      address,
+      linkedHash: playerHash
+    })
+  }
 
   console.log('Player tokens linked in distribution contract')
+
+  console.log('PlayerToken records to import in db')
+  console.log(JSON.stringify(playerTokens, null, 2))
 }
 
 run()
