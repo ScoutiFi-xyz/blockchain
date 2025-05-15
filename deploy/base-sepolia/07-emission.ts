@@ -8,13 +8,16 @@ const run = async () => {
   await deployEmission(owner)
 }
 
-const PLAYER_TOKEN_ID = '6821c134164e26370ca5df7c'
-const PLAYER_TOKEN_ADDRESS = '0x712C2d3dde8DE454a7aA014D21073Cb4777c519F'
+// Emission parameters
+const PLAYER_TOKEN_ID = '6821c134164e26370ca5df7b'
+const PLAYER_TOKEN_ADDRESS = '0xca5591F68e56bEa81d7575Fb5825722E200d8d16'
+
+const rate = 1000 // 1 eur per player token
+const emission = 500
+
 const STABLECOIN_ADDRESS = '0x6C8374476006Bc20588Ebc6bEaBf1b7B05aD5925'
 
 const deployEmission = async (deployer: HardhatEthersSigner) => {
-  const rate = 500 // 0.5 eur per player token
-  const emission = 100
 
   const TokenEmissionFactory = await ethers.getContractFactory('TokenEmission', deployer)
   const tokenEmission = await TokenEmissionFactory.deploy(
