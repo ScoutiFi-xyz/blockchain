@@ -8,18 +8,18 @@ import "./PlayerToken.sol";
 contract PlayerTokenFactory is Owned {
     using Bytes32AddressLib for bytes32;
 
-    // TODO: this is always empty at the moment
     address[] public playerTokenAddresses;
 
-    event TokenCreated(address indexed playerTokenAddress, uint count);
+    event TokenCreated(address indexed playerTokenAddress, string symbol, uint count);
 
     constructor() Owned(msg.sender) {}
 
-    function playerTokenContractsCount() external view returns (uint) {
-        return playerTokenAddresses.length;
-    }
-
     function createToken(string memory symbol, uint256 icoValue) external onlyOwner() {
+        require(
+            this.getTokenAddress(symbol).code.length == 0,
+            "TOKEN_ALREADY_DEPLOYED"
+        );
+
         bytes memory bytecode = type(PlayerToken).creationCode;
         bytes memory constructorArgs = abi.encode(symbol);
         bytes memory bytecodeWithArgs = abi.encodePacked(bytecode, constructorArgs);
@@ -29,11 +29,13 @@ contract PlayerTokenFactory is Owned {
         assembly {
             token := create2(0, add(bytecodeWithArgs, 32), mload(bytecodeWithArgs), salt)
         }
+        require(token != address(0), "CREATE2_FAILED");
+
+        playerTokenAddresses.push(token);
 
         PlayerToken(token).mint(msg.sender, icoValue);
 
-        // TODO: could be useful to have the symbol in event as well
-        emit TokenCreated(token, this.playerTokenContractsCount());
+        emit TokenCreated(token, symbol, playerTokenAddresses.length);
     }
 
     function getTokenAddress(string memory symbol) external view returns (address token) {

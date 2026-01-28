@@ -1,16 +1,14 @@
-# Sample Hardhat Project
+# ScoutiFi
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+## Deployments
 
-Try running some of the following tasks:
+### Base Sepolia
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.ts
-```
+| Contract              | Address                                    |
+|-----------------------|--------------------------------------------|
+| ScoutiToken           | 0x8992f1B7d103CF285a2a595AC2276b6F11855f6A |
+| PlayerTokenFactory    | 0xeDf52aaEba741EEEc10d0Bd3b2bd714E56349280 |
+| SwapFeeHook           | 0x49b3e1fd12d102478203b48b66763f436c95c088 |
 
 ## Verify
 npm run verify -- network baseSepolia <DEPLOYED_CONTRACT_ADDRESS> "Constructor Argument"
